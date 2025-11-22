@@ -26,6 +26,10 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
 		<dependency>
 			<groupId>org.postgresql</groupId>
 			<artifactId>postgresql</artifactId>
@@ -41,6 +45,16 @@
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+        <dependency>
+            <groupId>org.openapitools</groupId>
+            <artifactId>jackson-databind-nullable</artifactId>
+            <version>0.2.6</version>
+        </dependency>
+        <dependency>
+            <groupId>io.swagger.core.v3</groupId>
+            <artifactId>swagger-annotations</artifactId>
+            <version>2.2.20</version>
+        </dependency>
 	</dependencies>
 
 	<build>
@@ -56,6 +70,35 @@
 						</exclude>
 					</excludes>
 				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.openapitools</groupId>
+				<artifactId>openapi-generator-maven-plugin</artifactId>
+				<version>7.5.0</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<inputSpec>${project.basedir}/src/main/resources/contract/smart-wardrobe-api.yaml</inputSpec>
+							<generatorName>spring</generatorName>
+							<apiPackage>com.example.apidressing.gen.api</apiPackage>
+							<modelPackage>com.example.apidressing.gen.model</modelPackage>
+                            <supportingFilesToGenerate>ApiUtil.java</supportingFilesToGenerate>
+							<configOptions>
+                                <!-- Indique au générateur de produire du code compatible avec Spring Boot 3. -->
+								<useSpringBoot3>true</useSpringBoot3>
+                                <!-- Génère uniquement une interface Java pour l'API, que nous implémenterons nous-mêmes. -->
+                                <interfaceOnly>true</interfaceOnly>
+                                <!-- Utilise les 'tags' du contrat OpenAPI pour nommer les fichiers d'interface (ex: 'Wardrobe' -> WardrobeApi.java). -->
+                                <useTags>true</useTags>
+                                <!-- N'utilise pas le "delegate pattern", ce qui simplifie l'architecture en implémentant l'interface directement dans le contrôleur. -->
+                                <delegatePattern>false</delegatePattern>
+							</configOptions>
+						</configuration>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>

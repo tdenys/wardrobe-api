@@ -1,0 +1,257 @@
+openapi: 3.0.3
+info:
+  title: Smart Wardrobe API
+  description: API pour l'application de gestion de dressing et suggestions de tenues.
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080/api/v1
+    description: Serveur de développement local
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    # --- ENUMS ---
+    ClothingLayer:
+      type: string
+      enum: [BASE, TOP, MID, OUTER, BOTTOM, SHOES, ACCESSORY]
+      description: "Couche du vêtement (ex: TOP pour T-shirt, OUTER pour Manteau)"
+    
+    ItemStatus:
+      type: string
+      enum: [IN_WARDROBE, WISHLIST, SUGGESTION]
+
+    # --- OBJETS METIERS ---
+    ClothingItem:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+          example: "Pull en laine bleu"
+        imageUrl:
+          type: string
+          format: uri
+          description: "URL accessible de l'image stockée"
+        layer:
+          $ref: '#/components/schemas/ClothingLayer'
+        warmthLevel:
+          type: integer
+          minimum: 1
+          maximum: 5
+          description: "1 = Léger (Lin), 5 = Très chaud (Doudoune)"
+        isRainReady:
+          type: boolean
+        status:
+          $ref: '#/components/schemas/ItemStatus'
+
+    Outfit:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+          example: "Tenue Hiver Bureau"
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ClothingItem'
+
+    WeatherSuggestion:
+      type: object
+      properties:
+        city:
+          type: string
+          example: "Paris"
+        temperature:
+          type: number
+          format: float
+          example: 12.5
+        description:
+          type: string
+          example: "Pluvieux"
+        suggestedOutfit:
+          $ref: '#/components/schemas/Outfit'
+        reasoning:
+          type: string
+          example: "Il pleut, j'ai choisi votre trench imperméable."
+
+security:
+  - bearerAuth: []
+
+tags:
+  - name: Wardrobe
+    description: Gestion des vêtements
+  - name: Outfits
+    description: Gestion des tenues composées
+  - name: Suggestions
+    description: Algorithmes intelligents
+
+paths:
+  # --- GESTION DU DRESSING ---
+  /clothing-items:
+    get:
+      tags:
+        - Wardrobe
+      summary: Lister les vêtements du dressing
+      operationId: listClothingItems
+      parameters:
+        - name: layer
+          in: query
+          schema:
+            $ref: '#/components/schemas/ClothingLayer'
+          required: false
+          description: Filtrer par type (lister seulement les chaussures, ect...)
+      responses:
+        '200':
+          description: Liste récupérée avec succès
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ClothingItem'
+
+    post:
+      tags:
+        - Wardrobe
+      summary: Ajouter un vêtement (avec upload photo)
+      operationId: addClothingItem
+      description: "Upload multipart: Image + Données"
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image:
+                  type: string
+                  format: binary
+                  description: "Le fichier image (jpg/png)"
+                name:
+                  type: string
+                layer:
+                  $ref: '#/components/schemas/ClothingLayer'
+                warmthLevel:
+                  type: integer
+                  minimum: 1
+                  maximum: 5
+                mainColorHex:
+                  type: string
+                  example: "#FF0000"
+              required:
+                - image
+                - name
+                - layer
+                - warmthLevel
+      responses:
+        '201':
+          description: Vêtement créé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClothingItem'
+
+  /clothing-items/{id}:
+    delete:
+      tags:
+        - Wardrobe
+      summary: Supprimer un vêtement
+      operationId: deleteClothingItem
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '204':
+          description: Supprimé avec succès
+
+  # --- GESTION DES TENUES ---
+  /outfits:
+    get:
+      tags:
+        - Outfits
+      summary: Lister mes tenues enregistrées
+      operationId: listOutfits
+      responses:
+        '200':
+          description: Succès
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Outfit'
+    
+    post:
+      tags:
+        - Outfits
+      summary: Créer une nouvelle tenue manuellement
+      operationId: createOutfit
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                itemIds:
+                  type: array
+                  items:
+                    type: integer
+                    format: int64
+                  description: "Liste des ID des vêtements qui composent la tenue"
+              required:
+                - name
+                - itemIds
+      responses:
+        '201':
+          description: Tenue créée
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Outfit'
+
+  # --- SUGGESTIONS ---
+  /suggestions/daily:
+    get:
+      tags:
+        - Suggestions
+      summary: Obtenir une suggestion basée sur la météo
+      operationId: getDailySuggestion
+      parameters:
+        - name: lat
+          in: query
+          required: true
+          schema:
+            type: number
+            format: float
+          description: Latitude (GPS)
+        - name: lon
+          in: query
+          required: true
+          schema:
+            type: number
+            format: float
+          description: Longitude (GPS)
+      responses:
+        '200':
+          description: Suggestion générée
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WeatherSuggestion'
