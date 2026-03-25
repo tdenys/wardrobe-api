@@ -46,8 +46,12 @@ components:
           minimum: 1
           maximum: 5
           description: "1 = Léger (Lin), 5 = Très chaud (Doudoune)"
-        isRainReady:
+        isWaterproof:
           type: boolean
+          description: "Le vêtement est-il imperméable ?"
+        isWindproof:
+          type: boolean
+          description: "Le vêtement est-il coupe-vent ?"
         status:
           $ref: '#/components/schemas/ItemStatus'
 
@@ -227,12 +231,12 @@ paths:
                 $ref: '#/components/schemas/Outfit'
 
   # --- SUGGESTIONS ---
-  /suggestions/daily:
+  /suggestions/daily/by-gps:
     get:
       tags:
-        - Suggestions
-      summary: Obtenir une suggestion basée sur la météo
-      operationId: getDailySuggestion
+        - Wardrobe
+      summary: Obtenir une suggestion basée sur la météo par GPS
+      operationId: getDailySuggestionByGps
       parameters:
         - name: lat
           in: query
@@ -248,6 +252,27 @@ paths:
             type: number
             format: float
           description: Longitude (GPS)
+      responses:
+        '200':
+          description: Suggestion générée
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WeatherSuggestion'
+
+  /suggestions/daily/by-city:
+    get:
+      tags:
+        - Wardrobe
+      summary: Obtenir une suggestion basée sur la météo par nom de ville
+      operationId: getDailySuggestionByCity
+      parameters:
+        - name: city
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Nom de la ville
       responses:
         '200':
           description: Suggestion générée
