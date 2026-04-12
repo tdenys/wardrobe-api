@@ -42,8 +42,8 @@ public class WardrobeController implements WardrobeApi {
     }
 
     @Override
-    public ResponseEntity<ClothingItem> addClothingItem(MultipartFile image, String name, ClothingLayer layer, Integer warmthLevel, String mainColorHex) {
-        ClothingItem created = clothingItemService.addItem(image, name, layer, warmthLevel, mainColorHex);
+    public ResponseEntity<ClothingItem> addClothingItem(MultipartFile image, String name, ClothingLayer layer, Integer warmthLevel, Boolean isWaterproof, Boolean isWindproof, String mainColorHex) {
+        ClothingItem created = clothingItemService.addItem(image, name, layer, warmthLevel, isWaterproof, isWindproof, mainColorHex);
         return new ResponseEntity<>(created, HttpStatus.CREATED);
     }
 

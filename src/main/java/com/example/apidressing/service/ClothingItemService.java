@@ -2,6 +2,7 @@ package com.example.apidressing.service;
 
 import com.example.apidressing.gen.model.ClothingItem;
 import com.example.apidressing.gen.model.ClothingLayer;
+import com.example.apidressing.model.ClothingItemEntity;
 import com.example.apidressing.repository.ClothingItemRepository;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -21,37 +22,58 @@ public class ClothingItemService {
      */
     @PostConstruct
     void seedWardrobe() {
-        repository.save(new ClothingItem().name("T-shirt Coton Blanc").layer(ClothingLayer.TOP).warmthLevel(1).isWaterproof(false).isWindproof(false));
-        repository.save(new ClothingItem().name("Pull en laine").layer(ClothingLayer.TOP).warmthLevel(4).isWaterproof(false).isWindproof(false));
-        repository.save(new ClothingItem().name("Chemise").layer(ClothingLayer.TOP).warmthLevel(2).isWaterproof(false).isWindproof(false));
-        repository.save(new ClothingItem().name("Jean Brut").layer(ClothingLayer.BOTTOM).warmthLevel(2).isWaterproof(false).isWindproof(false));
-        repository.save(new ClothingItem().name("Short en lin").layer(ClothingLayer.BOTTOM).warmthLevel(1).isWaterproof(false).isWindproof(false));
-        repository.save(new ClothingItem().name("Trench-coat").layer(ClothingLayer.OUTER).warmthLevel(2).isWaterproof(true).isWindproof(true));
-        repository.save(new ClothingItem().name("Doudoune chaude").layer(ClothingLayer.OUTER).warmthLevel(5).isWaterproof(true).isWindproof(true));
-        repository.save(new ClothingItem().name("Veste en jean").layer(ClothingLayer.OUTER).warmthLevel(2).isWaterproof(false).isWindproof(false));
-        repository.save(new ClothingItem().name("Baskets en toile").layer(ClothingLayer.SHOES).warmthLevel(1).isWaterproof(false).isWindproof(false));
-        repository.save(new ClothingItem().name("Bottes en cuir").layer(ClothingLayer.SHOES).warmthLevel(3).isWaterproof(true).isWindproof(false));
+        if (repository.count() > 0) return;
+        repository.save(entity("T-shirt Coton Blanc", ClothingLayer.TOP, 1, false, false));
+        repository.save(entity("Pull en laine",       ClothingLayer.TOP, 4, false, false));
+        repository.save(entity("Chemise",             ClothingLayer.TOP, 2, false, false));
+        repository.save(entity("Jean Brut",           ClothingLayer.BOTTOM, 2, false, false));
+        repository.save(entity("Short en lin",        ClothingLayer.BOTTOM, 1, false, false));
+        repository.save(entity("Trench-coat",         ClothingLayer.OUTER, 2, true,  true));
+        repository.save(entity("Doudoune chaude",     ClothingLayer.OUTER, 5, true,  true));
+        repository.save(entity("Veste en jean",       ClothingLayer.OUTER, 2, false, false));
+        repository.save(entity("Baskets en toile",    ClothingLayer.SHOES, 1, false, false));
+        repository.save(entity("Bottes en cuir",      ClothingLayer.SHOES, 3, true,  false));
     }
 
     public List<ClothingItem> listItems(ClothingLayer layer) {
-        if (layer != null) {
-            return repository.findByLayer(layer);
-        }
-        return repository.findAll();
+        List<ClothingItemEntity> entities = (layer != null)
+                ? repository.findByLayer(layer)
+                : repository.findAll();
+        return entities.stream().map(this::toDto).toList();
     }
 
-    public ClothingItem addItem(MultipartFile image, String name, ClothingLayer layer, Integer warmthLevel, String mainColorHex) {
-        ClothingItem item = new ClothingItem()
-                .name(name)
-                .layer(layer)
-                .warmthLevel(warmthLevel)
-                .isWaterproof(false)
-                .isWindproof(false);
+    public ClothingItem addItem(MultipartFile image, String name, ClothingLayer layer, Integer warmthLevel, Boolean isWaterproof, Boolean isWindproof, String mainColorHex) {
+        ClothingItemEntity e = entity(name, layer, warmthLevel, isWaterproof, isWindproof);
         // TODO: stocker l'image et renseigner imageUrl
-        return repository.save(item);
+        return toDto(repository.save(e));
     }
 
     public boolean deleteItem(Long id) {
-        return repository.deleteById(id);
+        if (!repository.existsById(id)) return false;
+        repository.deleteById(id);
+        return true;
+    }
+
+    // --- Helpers ---
+
+    private ClothingItemEntity entity(String name, ClothingLayer layer, int warmth, boolean waterproof, boolean windproof) {
+        ClothingItemEntity e = new ClothingItemEntity();
+        e.setName(name);
+        e.setLayer(layer);
+        e.setWarmthLevel(warmth);
+        e.setWaterproof(waterproof);
+        e.setWindproof(windproof);
+        return e;
+    }
+
+    private ClothingItem toDto(ClothingItemEntity e) {
+        return new ClothingItem()
+                .id(e.getId())
+                .name(e.getName())
+                .layer(e.getLayer())
+                .warmthLevel(e.getWarmthLevel())
+                .isWaterproof(e.getWaterproof())
+                .isWindproof(e.getWindproof())
+                .status(e.getStatus());
     }
 }

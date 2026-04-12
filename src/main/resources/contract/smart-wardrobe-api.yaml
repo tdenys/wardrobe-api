@@ -152,11 +152,17 @@ paths:
                 mainColorHex:
                   type: string
                   example: "#FF0000"
+                isWaterproof:
+                  type: boolean
+                isWindproof:
+                  type: boolean
               required:
                 - image
                 - name
                 - layer
                 - warmthLevel
+                - isWaterproof
+                - isWindproof
       responses:
         '201':
           description: Vêtement créé
