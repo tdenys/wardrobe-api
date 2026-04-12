@@ -14,12 +14,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 
 @Controller
@@ -30,11 +28,6 @@ public class WardrobeController implements WardrobeApi {
     private final WeatherService weatherService;
     private final OutfitRecommendationService recommendationService;
     private final ClothingItemService clothingItemService;
-
-    @Override
-    public Optional<NativeWebRequest> getRequest() {
-        return WardrobeApi.super.getRequest();
-    }
 
     @Override
     public ResponseEntity<List<ClothingItem>> listClothingItems(ClothingLayer layer) {

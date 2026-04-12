@@ -18,6 +18,9 @@ public class ClothingItemEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false)
+    private Long userId;
+
     private String name;
 
     private String imageUrl;

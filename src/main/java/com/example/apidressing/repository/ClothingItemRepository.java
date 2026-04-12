@@ -8,5 +8,9 @@ import java.util.List;
 
 public interface ClothingItemRepository extends JpaRepository<ClothingItemEntity, Long> {
 
-    List<ClothingItemEntity> findByLayer(ClothingLayer layer);
+    List<ClothingItemEntity> findByUserId(Long userId);
+
+    List<ClothingItemEntity> findByUserIdAndLayer(Long userId, ClothingLayer layer);
+
+    boolean existsByIdAndUserId(Long id, Long userId);
 }
