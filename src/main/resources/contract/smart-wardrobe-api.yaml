@@ -69,6 +69,22 @@ components:
           items:
             $ref: '#/components/schemas/ClothingItem'
 
+    AuthRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+
+    AuthResponse:
+      type: object
+      properties:
+        token:
+          type: string
+
     WeatherSuggestion:
       type: object
       properties:
@@ -92,6 +108,8 @@ security:
   - bearerAuth: []
 
 tags:
+  - name: Auth
+    description: Inscription et connexion
   - name: Wardrobe
     description: Gestion des vêtements
   - name: Outfits
@@ -100,6 +118,51 @@ tags:
     description: Algorithmes intelligents
 
 paths:
+  # --- AUTHENTIFICATION ---
+  /auth/register:
+    post:
+      tags: [Auth]
+      summary: Créer un compte
+      operationId: register
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthRequest'
+      responses:
+        '201':
+          description: Compte créé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '409':
+          description: Email déjà utilisé
+
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: Se connecter
+      operationId: login
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthRequest'
+      responses:
+        '200':
+          description: Connexion réussie
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          description: Identifiants invalides
+
   # --- GESTION DU DRESSING ---
   /clothing-items:
     get:
@@ -152,11 +215,17 @@ paths:
                 mainColorHex:
                   type: string
                   example: "#FF0000"
+                isWaterproof:
+                  type: boolean
+                isWindproof:
+                  type: boolean
               required:
                 - image
                 - name
                 - layer
                 - warmthLevel
+                - isWaterproof
+                - isWindproof
       responses:
         '201':
           description: Vêtement créé
