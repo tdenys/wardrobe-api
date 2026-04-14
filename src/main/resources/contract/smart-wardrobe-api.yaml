@@ -220,7 +220,6 @@ paths:
                 isWindproof:
                   type: boolean
               required:
-                - image
                 - name
                 - layer
                 - warmthLevel
