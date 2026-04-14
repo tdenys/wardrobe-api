@@ -13,4 +13,6 @@ public interface ClothingItemRepository extends JpaRepository<ClothingItemEntity
     List<ClothingItemEntity> findByUserIdAndLayer(Long userId, ClothingLayer layer);
 
     boolean existsByIdAndUserId(Long id, Long userId);
+
+    java.util.Optional<ClothingItemEntity> findByIdAndUserId(Long id, Long userId);
 }
