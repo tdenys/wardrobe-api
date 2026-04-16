@@ -4,12 +4,10 @@ import com.example.apidressing.gen.api.WardrobeApi;
 import com.example.apidressing.gen.model.ClothingItem;
 import com.example.apidressing.gen.model.ClothingLayer;
 import com.example.apidressing.gen.model.Outfit;
-import com.example.apidressing.gen.model.PagedOutfits;
 import com.example.apidressing.gen.model.WeatherSuggestion;
 import com.example.apidressing.model.DailyForecast;
 import com.example.apidressing.service.ClothingItemService;
 import com.example.apidressing.service.OutfitRecommendationService;
-import com.example.apidressing.service.OutfitService;
 import com.example.apidressing.service.WeatherService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -30,7 +28,6 @@ public class WardrobeController implements WardrobeApi {
     private final WeatherService weatherService;
     private final OutfitRecommendationService recommendationService;
     private final ClothingItemService clothingItemService;
-    private final OutfitService outfitService;
 
     @Override
     public ResponseEntity<List<ClothingItem>> listClothingItems(ClothingLayer layer) {
@@ -52,13 +49,6 @@ public class WardrobeController implements WardrobeApi {
     }
 
     @Override
-    public ResponseEntity<PagedOutfits> listOutfits(Integer page, Integer size) {
-        int p = (page != null) ? page : 0;
-        int s = (size != null) ? size : 20;
-        return ResponseEntity.ok(outfitService.listOutfits(p, s));
-    }
-
-    @Override
     public ResponseEntity<WeatherSuggestion> getDailySuggestionByGps(Float lat, Float lon) {
         DailyForecast forecast = weatherService.getDailyForecast(lat, lon);
         return buildSuggestionResponse(forecast);
@@ -76,10 +66,8 @@ public class WardrobeController implements WardrobeApi {
         }
 
         List<ClothingItem> userWardrobe = clothingItemService.listItems(null);
-
         Outfit recommendedOutfit = recommendationService.recommendOutfit(forecast, userWardrobe);
 
-        // 4. Construire la réponse
         WeatherSuggestion suggestion = new WeatherSuggestion();
         suggestion.setTemperature(Float.valueOf((float) forecast.getAverageTemperature()));
         suggestion.setDescription(forecast.getWeatherCondition());
@@ -89,9 +77,6 @@ public class WardrobeController implements WardrobeApi {
         return new ResponseEntity<>(suggestion, HttpStatus.OK);
     }
 
-    /**
-     * Construit une phrase expliquant pourquoi la tenue a été choisie.
-     */
     private String buildReasoning(DailyForecast forecast) {
         List<String> reasons = new ArrayList<>();
         if (forecast.getPrecipitationProbability() > 30) {
@@ -103,5 +88,4 @@ public class WardrobeController implements WardrobeApi {
         reasons.add(String.format("la température moyenne est de %.0f°C", Double.valueOf(forecast.getAverageTemperature())));
         return "Tenue suggérée car " + String.join(" et ", reasons) + ".";
     }
-
 }

@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.net.URI;
+import java.time.ZoneOffset;
 import java.util.List;
 
 @Service
@@ -50,7 +51,7 @@ public class OutfitService {
         Outfit outfit = new Outfit();
         outfit.setId(e.getId());
         outfit.setName(e.getName());
-        outfit.setCreatedAt(e.getCreatedAt());
+        outfit.setCreatedAt(e.getCreatedAt().atOffset(ZoneOffset.UTC));
         outfit.setItems(e.getItems().stream().map(this::itemToDto).toList());
         return outfit;
     }
