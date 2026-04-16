@@ -64,10 +64,35 @@ components:
         name:
           type: string
           example: "Tenue Hiver Bureau"
+        createdAt:
+          type: string
+          format: date-time
+          description: "Date de création de la tenue"
         items:
           type: array
           items:
             $ref: '#/components/schemas/ClothingItem'
+
+    PagedOutfits:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/Outfit'
+        totalElements:
+          type: integer
+          format: int64
+          description: "Nombre total de tenues"
+        totalPages:
+          type: integer
+          description: "Nombre total de pages"
+        page:
+          type: integer
+          description: "Page courante (commence à 0)"
+        size:
+          type: integer
+          description: "Nombre d'éléments par page"
 
     AuthRequest:
       type: object
@@ -84,6 +109,20 @@ components:
       properties:
         token:
           type: string
+
+    CreateOutfitRequest:
+      type: object
+      required: [name, itemIds]
+      properties:
+        name:
+          type: string
+          example: "Tenue Hiver Bureau"
+        itemIds:
+          type: array
+          items:
+            type: integer
+            format: int64
+          description: "Liste des ID des vêtements qui composent la tenue"
 
     WeatherSuggestion:
       type: object
@@ -255,17 +294,33 @@ paths:
     get:
       tags:
         - Outfits
-      summary: Lister mes tenues enregistrées
+      summary: Lister mes tenues enregistrées (paginé, trié par date de création desc)
       operationId: listOutfits
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+            minimum: 0
+          description: "Numéro de page (commence à 0)"
+        - name: size
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+            maximum: 100
+          description: "Nombre d'éléments par page"
       responses:
         '200':
           description: Succès
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Outfit'
+                $ref: '#/components/schemas/PagedOutfits'
     
     post:
       tags:
@@ -277,19 +332,7 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                name:
-                  type: string
-                itemIds:
-                  type: array
-                  items:
-                    type: integer
-                    format: int64
-                  description: "Liste des ID des vêtements qui composent la tenue"
-              required:
-                - name
-                - itemIds
+              $ref: '#/components/schemas/CreateOutfitRequest'
       responses:
         '201':
           description: Tenue créée
@@ -297,6 +340,25 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Outfit'
+
+  /outfits/{id}:
+    delete:
+      tags:
+        - Outfits
+      summary: Supprimer une tenue
+      operationId: deleteOutfit
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '204':
+          description: Tenue supprimée avec succès
+        '404':
+          description: Tenue introuvable
 
   # --- SUGGESTIONS ---
   /suggestions/daily/by-gps:

@@ -66,10 +66,8 @@ public class WardrobeController implements WardrobeApi {
         }
 
         List<ClothingItem> userWardrobe = clothingItemService.listItems(null);
-
         Outfit recommendedOutfit = recommendationService.recommendOutfit(forecast, userWardrobe);
 
-        // 4. Construire la réponse
         WeatherSuggestion suggestion = new WeatherSuggestion();
         suggestion.setTemperature(Float.valueOf((float) forecast.getAverageTemperature()));
         suggestion.setDescription(forecast.getWeatherCondition());
@@ -79,9 +77,6 @@ public class WardrobeController implements WardrobeApi {
         return new ResponseEntity<>(suggestion, HttpStatus.OK);
     }
 
-    /**
-     * Construit une phrase expliquant pourquoi la tenue a été choisie.
-     */
     private String buildReasoning(DailyForecast forecast) {
         List<String> reasons = new ArrayList<>();
         if (forecast.getPrecipitationProbability() > 30) {
@@ -93,5 +88,4 @@ public class WardrobeController implements WardrobeApi {
         reasons.add(String.format("la température moyenne est de %.0f°C", Double.valueOf(forecast.getAverageTemperature())));
         return "Tenue suggérée car " + String.join(" et ", reasons) + ".";
     }
-
 }
