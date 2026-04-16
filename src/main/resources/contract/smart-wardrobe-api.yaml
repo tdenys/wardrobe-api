@@ -341,6 +341,25 @@ paths:
               schema:
                 $ref: '#/components/schemas/Outfit'
 
+  /outfits/{id}:
+    delete:
+      tags:
+        - Outfits
+      summary: Supprimer une tenue
+      operationId: deleteOutfit
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '204':
+          description: Tenue supprimée avec succès
+        '404':
+          description: Tenue introuvable
+
   # --- SUGGESTIONS ---
   /suggestions/daily/by-gps:
     get:

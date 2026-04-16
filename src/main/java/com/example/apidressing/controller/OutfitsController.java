@@ -6,6 +6,7 @@ import com.example.apidressing.gen.model.Outfit;
 import com.example.apidressing.gen.model.PagedOutfits;
 import com.example.apidressing.service.OutfitService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -26,7 +27,12 @@ public class OutfitsController implements OutfitsApi {
 
     @Override
     public ResponseEntity<Outfit> createOutfit(CreateOutfitRequest body) {
-        // TODO: implémenter POST /outfits
-        return ResponseEntity.status(501).build();
+        return new ResponseEntity<>(outfitService.createOutfit(body), HttpStatus.CREATED);
+    }
+
+    @Override
+    public ResponseEntity<Void> deleteOutfit(Long id) {
+        outfitService.deleteOutfit(id);
+        return ResponseEntity.noContent().build();
     }
 }
