@@ -4,10 +4,12 @@ import com.example.apidressing.gen.api.WardrobeApi;
 import com.example.apidressing.gen.model.ClothingItem;
 import com.example.apidressing.gen.model.ClothingLayer;
 import com.example.apidressing.gen.model.Outfit;
+import com.example.apidressing.gen.model.PagedOutfits;
 import com.example.apidressing.gen.model.WeatherSuggestion;
 import com.example.apidressing.model.DailyForecast;
 import com.example.apidressing.service.ClothingItemService;
 import com.example.apidressing.service.OutfitRecommendationService;
+import com.example.apidressing.service.OutfitService;
 import com.example.apidressing.service.WeatherService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -28,6 +30,7 @@ public class WardrobeController implements WardrobeApi {
     private final WeatherService weatherService;
     private final OutfitRecommendationService recommendationService;
     private final ClothingItemService clothingItemService;
+    private final OutfitService outfitService;
 
     @Override
     public ResponseEntity<List<ClothingItem>> listClothingItems(ClothingLayer layer) {
@@ -46,6 +49,13 @@ public class WardrobeController implements WardrobeApi {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @Override
+    public ResponseEntity<PagedOutfits> listOutfits(Integer page, Integer size) {
+        int p = (page != null) ? page : 0;
+        int s = (size != null) ? size : 20;
+        return ResponseEntity.ok(outfitService.listOutfits(p, s));
     }
 
     @Override
