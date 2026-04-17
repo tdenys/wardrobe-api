@@ -1,0 +1,83 @@
+# ============================================================
+# Pipeline d'Intégration Continue — Smart Wardrobe API
+# ============================================================
+# Ce workflow se déclenche automatiquement sur chaque push et
+# pull_request ciblant master. Il garantit que le code compile,
+# que les sources OpenAPI sont générées et que les tests passent
+# avant tout merge.
+# ============================================================
+
+name: CI
+
+# Déclencheurs : push direct sur master ET ouverture/mise à jour d'une PR vers master
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    name: Build & Test
+    # Utilise la dernière image Ubuntu stable fournie par GitHub
+    runs-on: ubuntu-latest
+
+    # Variables d'environnement injectées dans tous les steps du job.
+    # Ces valeurs sont FACTICES et servent uniquement à permettre au
+    # contexte Spring Boot de démarrer pendant les tests sans credentials réels.
+    # En production, utiliser de vrais secrets via GitHub Secrets :
+    #   Settings → Secrets and variables → Actions → New repository secret
+    env:
+      # Clé HMAC-SHA256 pour signer les JWT (64 hex chars = 32 bytes minimum requis)
+      JWT_SECRET: "0000000000000000000000000000000000000000000000000000000000000000"
+      # Clé API OpenWeatherMap (aucun appel réseau réel durant les tests unitaires)
+      WEATHER_API_KEY: dummy-key-for-ci
+      # Credentials Cloudflare R2 (aucun upload réel durant les tests unitaires)
+      R2_ACCESS_KEY_ID: dummy-access-key
+      R2_SECRET_ACCESS_KEY: dummy-secret-key
+
+    steps:
+      # 1. Récupère le code source du repo sur la machine virtuelle CI
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 2. Installe Java 21 (distribution Temurin = Eclipse Adoptium, open-source)
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      # 3. Met en cache le répertoire local Maven (~/.m2/repository).
+      #    La clé de cache est calculée à partir du hash de tous les pom.xml :
+      #    si aucune dépendance ne change, le cache est réutilisé tel quel,
+      #    ce qui évite de re-télécharger ~100 Mo de JARs à chaque run.
+      #    Si pom.xml change, un nouveau cache est créé (restore-keys permet
+      #    de partir du cache précédent plutôt que de zéro).
+      - name: Cache Maven dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      # 4. Lance le build complet Maven :
+      #    - clean   : supprime target/ pour repartir d'un état propre
+      #    - verify  : compile → génère les sources OpenAPI → package → tests
+      #    --batch-mode          : désactive les prompts interactifs
+      #    --no-transfer-progress : supprime les barres de progression des téléchargements
+      #                            pour des logs CI plus lisibles
+      - name: Build and run tests
+        run: mvn clean verify --batch-mode --no-transfer-progress
+
+      # 5. En cas d'échec uniquement : upload les rapports XML de Surefire
+      #    (résultats des tests JUnit) comme artefact téléchargeable.
+      #    Conservé 7 jours pour faciliter le diagnostic sans surcharger le stockage.
+      - name: Publish test report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports
+          path: target/surefire-reports/
+          retention-days: 7
