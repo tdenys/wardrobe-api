@@ -19,8 +19,14 @@ on:
 jobs:
   build:
     name: Build & Test
-    # Utilise la dernière image Ubuntu stable fournie par GitHub
-    runs-on: ubuntu-latest
+    # Version fixe pour des builds reproductibles (ubuntu-latest est mouvant)
+    runs-on: ubuntu-24.04
+    # Durée maximale : tue le job si un test boucle indéfiniment
+    timeout-minutes: 15
+    # Principe du moindre privilège : seules les permissions nécessaires sont accordées
+    permissions:
+      contents: read   # lire le code source
+      checks: write    # poster le statut du build sur la PR
 
     # Variables d'environnement injectées dans tous les steps du job.
     # Ces valeurs sont FACTICES et servent uniquement à permettre au
