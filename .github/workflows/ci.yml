@@ -29,7 +29,7 @@ jobs:
     #   Settings → Secrets and variables → Actions → New repository secret
     env:
       # Clé HMAC-SHA256 pour signer les JWT (64 hex chars = 32 bytes minimum requis)
-      JWT_SECRET: 0000000000000000000000000000000000000000000000000000000000000000
+      JWT_SECRET: "0000000000000000000000000000000000000000000000000000000000000000"
       # Clé API OpenWeatherMap (aucun appel réseau réel durant les tests unitaires)
       WEATHER_API_KEY: dummy-key-for-ci
       # Credentials Cloudflare R2 (aucun upload réel durant les tests unitaires)
