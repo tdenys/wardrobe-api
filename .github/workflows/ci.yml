@@ -77,13 +77,19 @@ jobs:
       - name: Build and run tests
         run: mvn clean verify --batch-mode --no-transfer-progress
 
-      # 5. En cas d'échec uniquement : upload les rapports XML de Surefire
-      #    (résultats des tests JUnit) comme artefact téléchargeable.
+      # 5. En cas d'échec uniquement : upload les rapports d'analyse statique
+      #    et les résultats de tests comme artefacts téléchargeables.
+      #    - surefire-reports/ : résultats JUnit (XML)
+      #    - checkstyle-result.xml : violations de style détectées
+      #    - spotbugsXml.xml : bugs statiques détectés
       #    Conservé 7 jours pour faciliter le diagnostic sans surcharger le stockage.
-      - name: Publish test report
+      - name: Publish analysis reports
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: test-reports
-          path: target/surefire-reports/
+          name: analysis-reports
+          path: |
+            target/surefire-reports/
+            target/checkstyle-result.xml
+            target/spotbugsXml.xml
           retention-days: 7
