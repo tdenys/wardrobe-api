@@ -27,8 +27,8 @@ public class DataInitializer implements ApplicationRunner {
         if (userRepository.count() > 0) return;
 
         UserEntity user = new UserEntity();
-        user.setEmail("test@dressing.fr");
-        user.setPassword(passwordEncoder.encode("password123"));
+        user.setEmail("test@yopmail.com");
+        user.setPassword(passwordEncoder.encode("test"));
         user = userRepository.save(user);
 
         Long userId = user.getId();
