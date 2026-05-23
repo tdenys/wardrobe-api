@@ -17,6 +17,10 @@
 	<properties>
 		<java.version>21</java.version>
 		<jjwt.version>0.12.6</jjwt.version>
+		<!-- Versions des plugins d'analyse statique -->
+		<checkstyle.version>10.17.0</checkstyle.version>
+		<maven-checkstyle-plugin.version>3.4.0</maven-checkstyle-plugin.version>
+		<spotbugs-maven-plugin.version>4.8.6.4</spotbugs-maven-plugin.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -145,6 +149,86 @@
 					</execution>
 				</executions>
 			</plugin>
+
+			<!--
+			  ── Checkstyle ─────────────────────────────────────────────────
+			  Vérifie le style et les conventions de code.
+			  Se déclenche pendant la phase "verify" (mvn clean verify).
+			  Échoue le build si des violations de sévérité "error" sont trouvées.
+			  Le code généré (gen.*) est exclu via config/checkstyle/suppressions.xml.
+			-->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-checkstyle-plugin</artifactId>
+				<version>${maven-checkstyle-plugin.version}</version>
+				<dependencies>
+					<!-- Version explicite pour le support complet de Java 21 -->
+					<dependency>
+						<groupId>com.puppycrawl.tools</groupId>
+						<artifactId>checkstyle</artifactId>
+						<version>${checkstyle.version}</version>
+					</dependency>
+				</dependencies>
+				<configuration>
+					<configLocation>config/checkstyle/checkstyle.xml</configLocation>
+					<suppressionsLocation>config/checkstyle/suppressions.xml</suppressionsLocation>
+					<!-- Affiche les violations dans la console CI -->
+					<consoleOutput>true</consoleOutput>
+					<!-- Bloque le build sur toute violation de sévérité "error" -->
+					<failsOnError>true</failsOnError>
+					<!-- Analyse aussi les tests (bonnes pratiques dans les tests) -->
+					<includeTestSourceDirectory>true</includeTestSourceDirectory>
+					<!-- Exclut explicitement le code généré par OpenAPI Generator -->
+					<excludes>**/gen/**</excludes>
+				</configuration>
+				<executions>
+					<execution>
+						<id>checkstyle-verify</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>check</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<!--
+			  ── SpotBugs ────────────────────────────────────────────────────
+			  Analyse statique de bytecode pour détecter des bugs potentiels.
+			  Threshold "High" : bloque uniquement sur les bugs graves.
+			  Les faux positifs connus (Lombok, Spring, gen.*) sont exclus
+			  via config/spotbugs/exclude.xml.
+			-->
+			<plugin>
+				<groupId>com.github.spotbugs</groupId>
+				<artifactId>spotbugs-maven-plugin</artifactId>
+				<version>${spotbugs-maven-plugin.version}</version>
+				<configuration>
+					<!-- Analyse approfondie (Default = équilibre vitesse/précision) -->
+					<effort>Default</effort>
+					<!--
+					  Seuil : seuls les bugs de priorité High bloquent le build.
+					  Medium et Low sont signalés dans le rapport mais non bloquants.
+					-->
+					<threshold>High</threshold>
+					<!-- Bloque le build si des bugs High sont détectés -->
+					<failOnError>true</failOnError>
+					<!-- Fichier d'exclusions des faux positifs connus -->
+					<excludeFilterFile>config/spotbugs/exclude.xml</excludeFilterFile>
+					<!-- Génère un rapport XML exploitable par la CI -->
+					<xmlOutput>true</xmlOutput>
+				</configuration>
+				<executions>
+					<execution>
+						<id>spotbugs-verify</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>check</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
 		</plugins>
 	</build>
 

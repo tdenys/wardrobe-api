@@ -1,0 +1,24 @@
+# ============================================================
+# Configuration Dependabot — Smart Wardrobe API
+# ============================================================
+# Dependabot ouvre automatiquement des PRs pour maintenir à
+# jour les dépendances Maven et les actions GitHub Actions.
+# Les PRs sont créées le lundi matin pour être traitées en
+# début de semaine.
+# ============================================================
+
+version: 2
+updates:
+  # Mise à jour des actions GitHub (checkout, setup-java, cache, upload-artifact...)
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+
+  # Mise à jour des dépendances Maven (Spring Boot, jjwt, AWS SDK...)
+  - package-ecosystem: "maven"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"

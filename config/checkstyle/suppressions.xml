@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suppressions PUBLIC
+    "-//Checkstyle//DTD SuppressionFilter Configuration 1.2//EN"
+    "https://checkstyle.org/dtds/suppressions_1_2.dtd">
+
+<!--
+  Suppressions Checkstyle — Smart Wardrobe API
+  =============================================
+  Ce fichier désactive certaines règles pour des fichiers ou packages
+  spécifiques où elles génèrent du bruit sans valeur ajoutée.
+-->
+<suppressions>
+
+    <!--
+      Code généré automatiquement par OpenAPI Generator.
+      Ces fichiers ne sont pas maintenus manuellement : les imposer à des
+      règles de style créerait un bruit inutile et serait écrasé à la
+      prochaine génération.
+    -->
+    <suppress files="[\\/]gen[\\/]" checks=".*"/>
+
+    <!--
+      Longueur de ligne dans les services : certaines signatures de méthodes
+      héritées du contrat OpenAPI dépassent 150 caractères.
+      On supprime uniquement LineLength pour les fichiers *Service.java ;
+      les autres règles restent actives.
+    -->
+    <suppress files="[\\/]service[\\/].*Service\.java"
+              checks="LineLength"/>
+
+    <!--
+      Méthodes de mapping toDto() dans les services.
+      Ces méthodes peuvent dépasser 80 lignes quand l'entité est riche.
+    -->
+    <suppress files="[\\/]service[\\/].*Service\.java"
+              checks="MethodLength"/>
+
+</suppressions>

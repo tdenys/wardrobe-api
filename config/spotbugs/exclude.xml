@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Filtre d'exclusion SpotBugs — Smart Wardrobe API
+  ==================================================
+  Ce fichier liste les patterns de bugs à ignorer car ils correspondent
+  à des faux positifs connus dans un contexte Spring Boot + Lombok.
+
+  Documentation des codes :
+    https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html
+-->
+<FindBugsFilter>
+
+    <!--
+      ── Code généré par OpenAPI Generator ──────────────────────────────
+      Les classes du package gen.* sont auto-générées et ne doivent pas
+      être analysées : les violations signalées ne seraient pas corrigeables.
+    -->
+    <Match>
+        <Package name="~com\.example\.apidressing\.gen\..*"/>
+    </Match>
+
+    <!--
+      ── Faux positifs Lombok ────────────────────────────────────────────
+      EI_EXPOSE_REP  : SpotBugs signale que des getters retournent une
+                       référence directe à un tableau/collection interne.
+                       Lombok génère ces getters ; en pratique Spring JPA
+                       gère le cycle de vie de ces collections.
+      EI_EXPOSE_REP2 : Même chose pour les setters.
+    -->
+    <Match>
+        <Bug pattern="EI_EXPOSE_REP,EI_EXPOSE_REP2"/>
+    </Match>
+
+    <!--
+      ── Cast Spring Security ────────────────────────────────────────────
+      BC_UNCONFIRMED_CAST : SpotBugs signale le cast de getPrincipal() en
+      Long dans les services. Ce cast est sûr : notre JwtAuthenticationFilter
+      place toujours un Long comme principal dans le SecurityContext.
+    -->
+    <Match>
+        <Bug pattern="BC_UNCONFIRMED_CAST"/>
+        <Class name="~com\.example\.apidressing\.service\..*"/>
+    </Match>
+
+    <!--
+      ── Champs injectés par Spring (@Value) ────────────────────────────
+      UWF_UNWRITTEN_FIELD : SpotBugs ne voit pas l'injection Spring et
+      signale certains champs @Value comme non initialisés.
+    -->
+    <Match>
+        <Bug pattern="UWF_UNWRITTEN_FIELD"/>
+    </Match>
+
+    <!--
+      ── Entités JPA ─────────────────────────────────────────────────────
+      SE_NO_SERIALVERSIONUID : Les entités JPA (@Entity) ne nécessitent
+      pas de serialVersionUID dans notre configuration (pas de sérialisation
+      Java native, persistence via JDBC uniquement).
+    -->
+    <Match>
+        <Bug pattern="SE_NO_SERIALVERSIONUID"/>
+        <Class name="~com\.example\.apidressing\.model\..*"/>
+    </Match>
+
+</FindBugsFilter>

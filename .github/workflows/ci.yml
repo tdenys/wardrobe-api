@@ -19,8 +19,14 @@ on:
 jobs:
   build:
     name: Build & Test
-    # Utilise la dernière image Ubuntu stable fournie par GitHub
-    runs-on: ubuntu-latest
+    # Version fixe pour des builds reproductibles (ubuntu-latest est mouvant)
+    runs-on: ubuntu-24.04
+    # Durée maximale : tue le job si un test boucle indéfiniment
+    timeout-minutes: 15
+    # Principe du moindre privilège : seules les permissions nécessaires sont accordées
+    permissions:
+      contents: read   # lire le code source
+      checks: write    # poster le statut du build sur la PR
 
     # Variables d'environnement injectées dans tous les steps du job.
     # Ces valeurs sont FACTICES et servent uniquement à permettre au
@@ -40,6 +46,8 @@ jobs:
       # 1. Récupère le code source du repo sur la machine virtuelle CI
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       # 2. Installe Java 21 (distribution Temurin = Eclipse Adoptium, open-source)
       - name: Set up Java 21
@@ -71,13 +79,19 @@ jobs:
       - name: Build and run tests
         run: mvn clean verify --batch-mode --no-transfer-progress
 
-      # 5. En cas d'échec uniquement : upload les rapports XML de Surefire
-      #    (résultats des tests JUnit) comme artefact téléchargeable.
+      # 5. En cas d'échec uniquement : upload les rapports d'analyse statique
+      #    et les résultats de tests comme artefacts téléchargeables.
+      #    - surefire-reports/ : résultats JUnit (XML)
+      #    - checkstyle-result.xml : violations de style détectées
+      #    - spotbugsXml.xml : bugs statiques détectés
       #    Conservé 7 jours pour faciliter le diagnostic sans surcharger le stockage.
-      - name: Publish test report
+      - name: Publish analysis reports
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: test-reports
-          path: target/surefire-reports/
+          name: analysis-reports
+          path: |
+            target/surefire-reports/
+            target/checkstyle-result.xml
+            target/spotbugsXml.xml
           retention-days: 7

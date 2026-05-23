@@ -1,0 +1,175 @@
+<?xml version="1.0"?>
+<!DOCTYPE module PUBLIC
+    "-//Checkstyle//DTD Checkstyle Configuration 1.3//EN"
+    "https://checkstyle.org/dtds/configuration_1_3.dtd">
+
+<!--
+  Règles Checkstyle — Smart Wardrobe API
+  =======================================
+  Configuration pragmatique adaptée à Spring Boot + Lombok.
+  Objectif : attraper les vrais problèmes de style sans générer de bruit.
+
+  Philosophie :
+    - Sévérité "error" = bloque le build (violation critique)
+    - Sévérité "warning" = signalé mais ne bloque pas
+    - Le code généré (package gen.*) est exclu via suppressions.xml
+-->
+<module name="Checker">
+    <property name="charset"  value="UTF-8"/>
+    <property name="severity" value="error"/>
+
+    <!-- Fichier de suppressions (code généré, exceptions ponctuelles) -->
+    <module name="SuppressionFilter">
+        <property name="file" value="${config_loc}/suppressions.xml"/>
+    </module>
+
+    <!-- ── Vérifications au niveau fichier ──────────────────────────── -->
+
+    <!-- Interdit les tabulations : le projet utilise des espaces -->
+    <module name="FileTabCharacter">
+        <property name="eachLine" value="true"/>
+    </module>
+
+    <!-- ── Vérifications au niveau arbre syntaxique ─────────────────── -->
+    <module name="TreeWalker">
+
+        <!-- ┌─ Conventions de nommage ─────────────────────────────────┐ -->
+        <!-- Classes, enums, interfaces : PascalCase                     -->
+        <module name="TypeName"/>
+        <!-- Constantes (static final) : UPPER_SNAKE_CASE               -->
+        <module name="ConstantName"/>
+        <!-- Variables locales : camelCase                               -->
+        <module name="LocalVariableName"/>
+        <!-- Champs d'instance : camelCase                               -->
+        <module name="MemberName"/>
+        <!-- Méthodes : camelCase                                        -->
+        <module name="MethodName"/>
+        <!-- Packages : tout en minuscules                               -->
+        <module name="PackageName">
+            <property name="format" value="^[a-z]+(\.[a-z][a-z0-9]*)*$"/>
+        </module>
+        <!-- Paramètres : camelCase                                      -->
+        <module name="ParameterName"/>
+        <!-- Champs statiques mutables : camelCase                       -->
+        <module name="StaticVariableName"/>
+        <!-- └──────────────────────────────────────────────────────────┘ -->
+
+        <!-- ┌─ Imports ─────────────────────────────────────────────────┐ -->
+        <!-- Interdit les imports en wildcard (ex: import java.util.*)   -->
+        <module name="AvoidStarImport"/>
+        <!-- Supprime les imports inutilisés                             -->
+        <module name="UnusedImports"/>
+        <!-- Supprime les imports en double                              -->
+        <module name="RedundantImport"/>
+        <!-- └──────────────────────────────────────────────────────────┘ -->
+
+        <!-- ┌─ Taille ───────────────────────────────────────────────────┐ -->
+        <!--
+          Longueur max de ligne : 150 caractères.
+          Valeur délibérément souple pour Spring Boot (annotations longues,
+          chaînes de builder, signatures de méthodes avec @Value, etc.).
+          Les URLs et imports sont ignorés.
+        -->
+        <module name="LineLength">
+            <property name="max" value="150"/>
+            <property name="ignorePattern"
+                      value="^package.*|^import.*|https?://|ftp://"/>
+        </module>
+        <!--
+          Longueur max d'une méthode : 80 lignes.
+          Au-delà, la méthode devrait être découpée.
+        -->
+        <module name="MethodLength">
+            <property name="max" value="80"/>
+        </module>
+        <!--
+          Nombre max de paramètres : 8.
+          Spring Boot génère parfois des constructeurs volumineux (Lombok
+          @RequiredArgsConstructor avec beaucoup de dépendances).
+        -->
+        <module name="ParameterNumber">
+            <property name="max" value="8"/>
+        </module>
+        <!-- └──────────────────────────────────────────────────────────┘ -->
+
+        <!-- ┌─ Espaces blancs ───────────────────────────────────────────┐ -->
+        <!-- Espaces autour des génériques : List<String> et non List <String> -->
+        <module name="GenericWhitespace"/>
+        <!-- Pas d'espace avant la parenthèse de la déclaration de méthode -->
+        <module name="MethodParamPad"/>
+        <!-- Pas d'espace avant certains tokens (;, ,, .) -->
+        <module name="NoWhitespaceBefore"/>
+        <!--
+          Espaces autour des opérateurs et mots-clés.
+          Les constructeurs/méthodes/lambdas vides sont autorisés.
+        -->
+        <module name="WhitespaceAround">
+            <property name="allowEmptyConstructors" value="true"/>
+            <property name="allowEmptyLambdas"      value="true"/>
+            <property name="allowEmptyMethods"      value="true"/>
+            <property name="allowEmptyTypes"        value="true"/>
+            <property name="allowEmptyLoops"        value="true"/>
+        </module>
+        <!-- └──────────────────────────────────────────────────────────┘ -->
+
+        <!-- ┌─ Accolades ────────────────────────────────────────────────┐ -->
+        <!-- Les blocs vides doivent avoir un commentaire (pas de {} sec) -->
+        <module name="EmptyBlock">
+            <property name="option" value="text"/>
+        </module>
+        <!-- L'accolade ouvrante { est sur la même ligne                 -->
+        <module name="LeftCurly"/>
+        <!--
+          Les if/for/while nécessitent des accolades même sur une ligne.
+          Évite les bugs du type "Apple goto fail".
+        -->
+        <module name="NeedBraces"/>
+        <!-- L'accolade fermante } est sur sa propre ligne               -->
+        <module name="RightCurly"/>
+        <!-- └──────────────────────────────────────────────────────────┘ -->
+
+        <!-- ┌─ Bonnes pratiques de code ─────────────────────────────────┐ -->
+        <!-- Interdit les instructions vides (;; seul)                   -->
+        <module name="EmptyStatement"/>
+        <!-- Si equals() est redéfini, hashCode() doit l'être aussi      -->
+        <module name="EqualsHashCode"/>
+        <!-- Interdit les case sans break dans les switch                 -->
+        <module name="FallThrough"/>
+        <!-- Chaque switch doit avoir un cas default                      -->
+        <module name="MissedSwitchDefault"/>
+        <!-- Une seule déclaration de variable par ligne                 -->
+        <module name="MultipleVariableDeclarations"/>
+        <!-- Simplifie les expressions booléennes redondantes             -->
+        <module name="SimplifyBooleanExpression"/>
+        <!-- Simplifie les retours booléens redondants                   -->
+        <module name="SimplifyBooleanReturn"/>
+        <!-- Interdit la comparaison de String avec == (utiliser equals)  -->
+        <module name="StringLiteralEquality"/>
+        <!-- └──────────────────────────────────────────────────────────┘ -->
+
+        <!-- ┌─ Structure ────────────────────────────────────────────────┐ -->
+        <!-- Un seul type de premier niveau par fichier                  -->
+        <module name="OneTopLevelClass"/>
+        <!-- Le nom du fichier correspond à la classe de premier niveau  -->
+        <module name="OuterTypeFilename"/>
+        <!-- └──────────────────────────────────────────────────────────┘ -->
+
+        <!-- ┌─ Modificateurs ────────────────────────────────────────────┐ -->
+        <!--
+          Ordre standard : public protected private abstract default static
+          final transient volatile synchronized native strictfp
+        -->
+        <module name="ModifierOrder"/>
+        <!-- Supprime les modificateurs redondants (ex: public dans une interface) -->
+        <module name="RedundantModifier"/>
+        <!-- └──────────────────────────────────────────────────────────┘ -->
+
+        <!-- ┌─ Divers ───────────────────────────────────────────────────┐ -->
+        <!-- Les littéraux long utilisent L majuscule (1000L et non 1000l) -->
+        <module name="UpperEll"/>
+        <!-- Style de déclaration des tableaux : String[] args (Java) et non String args[] (C) -->
+        <module name="ArrayTypeStyle"/>
+        <!-- └──────────────────────────────────────────────────────────┘ -->
+
+    </module>
+</module>
